@@ -1,14 +1,18 @@
-# 1. Establish the minimum required version
-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+# Establish the minimum required version
+cmake_minimum_required(VERSION 3.10)
 
-# 2. Set the name of the project and supported languages
+# Set the name of the project and supported languages
 project(raytracing4life CXX)
 
-# 3. File globbing. Search for the files we are going to include in the build
-file(GLOB_RECURSE sources src/*.cpp)
+# Set the variables
+set(SOURCES src/main.cpp) 
+set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# 4. Target definitions
-add_executable(raytracing4life ${sources})
+# Target definitions
+add_executable(raytracing4life ${SOURCES})
 
-# 5. Include files relative to the root source directory with a <> pair
-target_include_directories(raytracing4life PUBLIC src)
+# Include files relative to the root source directory with a <> pair
+target_include_directories(raytracing4life PRIVATE ${INCLUDE_DIR})
+
+# Specify the C++ standard library features we depend on
+target_compile_features(raytracing4life PRIVATE cxx_std_17)
