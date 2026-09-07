@@ -2,10 +2,29 @@
 #include "core/color.h"
 #include "core/ray.h"
 
-color ray_color(const ray& r) {
-  vec3 unit_direction = unit_vector(r.direction());
+
+bool hit_sphere(const ray& ray, const point3& center, const double radius) {
+  vec3 oc = center - ray.origin();
+  // Solving the sphere intersection equation is a quadratic formula of the type (-b +-sqrt(b^2 -4*a*c))/2a
+  auto a = dot(ray.direction(), ray.direction());
+  auto b = -2.0 * dot(ray.direction(), oc);
+  auto c = dot(oc, oc) - radius*radius;
+
+  auto discriminant = b*b - 4*a*c;
+  // If the squared root is non-negative there will be a solution, therefore there will be a hit with the sphere
+  return (discriminant >= 0); 
+}
+color ray_color(const ray& ray) {
+  
+  // Sphere intersection, returns a red intense color where the sphere is met by a ray.
+  if(hit_sphere(ray, point3(0,0,-1), 0.5))
+    return color(1.0, 0.0, 0.0);
+  
+  vec3 unit_direction = unit_vector(ray.direction());
+  // Linear gradient background shading
   auto a = 0.5*(unit_direction.y() + 1.0);
-  return (1.0-a) *color(1.0,1.0,1.0) + a*color(0.5,0.7,1.0);
+  return (1.0-a) *color(1.0,1.0,1.0) + a*color(0.5,0.7,1.0); 
+  
 }
 
 int main() {
