@@ -1,38 +1,18 @@
 #include <iostream>
 #include "core/color.h"
 #include "core/ray.h"
+#include "core/sphere.h"
 
 
-double hit_sphere(const ray& ray, const point3& center, const double radius) {
-  vec3 oc = center - ray.origin();
-  // Solving the sphere intersection equation is a quadratic formula of the type (-b +-sqrt(b^2 -4*a*c))/2a
-  auto a = ray.direction().length_squared();
-  auto h = dot(ray.direction(), oc);
-  auto c = oc.length_squared() - radius*radius;
-  
-  auto discriminant = h*h - 4*a*c;
-  // If the squared root is non-negative there will be a solution, therefore there will be a hit with the sphere
-  // For surface normals now we check for the 
-  if (discriminant < 0) {
-    return -1.0;
-  } else {
-    // Return the result, which is the t that placed on the ray equation gives us the point of intersection.
-    // We take the -b - sqrt(discriminant) instead of both the +/- since we care only for the closest point 
-    // of intersection.
-    return (h - std::sqrt(discriminant)) / a;
-  }
-}
 color ray_color(const ray& ray) {
-  // Sphere intersection, returns a red intense color where the sphere is met by a ray.
-  point3 sphere_center (0,0,-1);
-  double sphere_radius = 0.5;
-  auto t = hit_sphere(ray, sphere_center, sphere_radius);
-  if (t > 0.0) {
-    // Compute the normal vector. The point of intersection - center of the sphere
-    vec3 N = unit_vector(ray.at(t) - sphere_center);
-    return 0.5 * color(N.x()+1,N.y()+1,N.z()+1);
+  // Sphere intersection, returns a normal colored map where the sphere is met by a ray.
+  sphere sphere(point3(0,0,-1), 0.5);
+  hit_record rec;
+  if(sphere.hit(ray, 0,100, rec))
+  {
+    return 0.5 * color(rec.normal.x()+1,rec.normal.y()+1,rec.normal.z()+1);
   }
-
+  
   vec3 unit_direction = unit_vector(ray.direction());
   // Linear gradient background shading
   auto a = 0.5*(unit_direction.y() + 1.0);
