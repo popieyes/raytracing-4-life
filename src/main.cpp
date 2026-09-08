@@ -6,11 +6,11 @@
 double hit_sphere(const ray& ray, const point3& center, const double radius) {
   vec3 oc = center - ray.origin();
   // Solving the sphere intersection equation is a quadratic formula of the type (-b +-sqrt(b^2 -4*a*c))/2a
-  auto a = dot(ray.direction(), ray.direction());
-  auto b = -2.0 * dot(ray.direction(), oc);
-  auto c = dot(oc, oc) - radius*radius;
+  auto a = ray.direction().length_squared();
+  auto h = dot(ray.direction(), oc);
+  auto c = oc.length_squared() - radius*radius;
   
-  auto discriminant = b*b - 4*a*c;
+  auto discriminant = h*h - 4*a*c;
   // If the squared root is non-negative there will be a solution, therefore there will be a hit with the sphere
   // For surface normals now we check for the 
   if (discriminant < 0) {
@@ -19,7 +19,7 @@ double hit_sphere(const ray& ray, const point3& center, const double radius) {
     // Return the result, which is the t that placed on the ray equation gives us the point of intersection.
     // We take the -b - sqrt(discriminant) instead of both the +/- since we care only for the closest point 
     // of intersection.
-    return (-b - std::sqrt(discriminant)) / (2.0*a);
+    return (h - std::sqrt(discriminant)) / a;
   }
 }
 color ray_color(const ray& ray) {
