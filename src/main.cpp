@@ -1,81 +1,24 @@
-#include <iostream>
-#include "core/color.h"
-#include "core/ray.h"
+#include "core/utils.h"
+#include "core/hittable.h"
+#include "core/hittable_list.h"
 #include "core/sphere.h"
-
-
-color ray_color(const ray& ray) {
-  // Sphere intersection, returns a normal colored map where the sphere is met by a ray.
-  sphere sphere(point3(0,0,-1), 0.5);
-  hit_record rec;
-  if(sphere.hit(ray, 0,100, rec))
-  {
-    return 0.5 * color(rec.normal.x()+1,rec.normal.y()+1,rec.normal.z()+1);
-  }
-  
-  vec3 unit_direction = unit_vector(ray.direction());
-  // Linear gradient background shading
-  auto a = 0.5*(unit_direction.y() + 1.0);
-  return (1.0-a) *color(1.0,1.0,1.0) + a*color(0.5,0.7,1.0); 
-  
-}
+#include "core/camera.h"
 
 int main() {
+  // World
+  hittable_list world;
   
-  // Scene Configuration
-  auto aspect_ratio = 16.0 / 9.0;
-  int img_width = 400;
-
-  // Height is computed from the image width and aspect ratio so we always get a correct aspect ratio
-  int img_height = int(img_width / aspect_ratio);
-  img_height = (img_height < 1) ? 1 : img_height;
-
-  // Camera
-  auto focal_length = 1.0;
-  auto viewport_height = 2.0;
-  auto viewport_width = viewport_height * (double(img_width)/img_height);
-  auto camera_center = point3(0,0,0);
-
-  auto viewport_u = vec3(viewport_width, 0,0);
-  auto viewport_v = vec3(0, -viewport_height, 0);
-
-  auto pixel_delta_u = viewport_u / img_width;
-  auto pixel_delta_v = viewport_v / img_height;
-
-  auto viewport_upper_left = camera_center - vec3(0,0,focal_length) - viewport_u/2 - viewport_v/2;
-  auto pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
-
-
-  // Render
-
-  // Render in PPM format. An RGB image in PPM format follows the following structure:
-  /*
-    P3
-    # The P3 means colors are in ASCII, then number of columns (e.g. 3) and number of rows
-    (e.g. 2), then for 255 for max color, then RGB triplets
-    
-    3 2
-    255
-    255   0   0     0 255   0     0   0 255
-    255 255   0   255 255 255     0   0   0
+  world.add(make_shared<sphere>(point3(0,0,-1), 0.5));
+  world.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
   
-  */
+  camera camera;
 
-  std::cout << "P3\n" << img_width << ' ' << img_height << "\n255\n";
+  camera.aspect_ratio = 16.0 / 9.0;
+  camera.img_width = 400;
+  camera.samples_per_pixel = 100;
+  camera.max_depth = 50;
 
-  for (int j = 0; j < img_height; j++) {
-    std::clog << "\rScanlines remaining: " << (img_height - j) << ' ' << std::flush;
-    for (int i = 0; i < img_width; i++) {
-      auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
-      auto ray_direction = pixel_center - camera_center;
-      ray r(camera_center, ray_direction);
-
-      color pixel_color = ray_color(r);
-      write_color(std::cout, pixel_color);
-    }
-  }
+  camera.render(world);
   
-  std::clog << "\rDone.               \n";
-
   return 0;
 }
