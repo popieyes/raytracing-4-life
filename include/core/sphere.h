@@ -1,14 +1,14 @@
 #pragma once
 
 #include "core/hittable.h"
-#include "core/vec3.h"
+#include "core/utils.h"
 
 class sphere : public hittable {
 
 public:
     sphere(const point3& center, double radius) : center(center), radius(std::fmax(0,radius)) {}
     
-    bool hit(const ray& ray, double ray_tmin, double ray_tmax, hit_record& rec) const override {
+    bool hit(const ray& ray, interval ray_t, hit_record& rec) const override {
         vec3 oc = center - ray.origin();
         // Solving the sphere intersection equation is a quadratic formula of the type (-b +-sqrt(b^2 -4*a*c))/2a
         auto a = ray.direction().length_squared();
@@ -26,16 +26,17 @@ public:
         // Find the nearest root that lies in an acceptable range
         auto root = (h - sqrtd) / a;
 
-        if (root <= ray_tmin || ray_tmax <= root) {
+        if (!ray_t.surrounds(root)) {
             root = (h + sqrtd) / a;
-            if (root <= ray_tmin || ray_tmax <= root)
+            if (!ray_t.surrounds(root))
                 return false;
         }
 
         rec.t = root;
         rec.p = ray.at(rec.t);
-        rec.normal = (rec.p - center) / radius; // Return the normal in unit vector format.
-
+        vec3 outward_normal = (rec.p - center) / radius; // Return the normal in unit vector format.
+        rec.set_face_normal(ray, outward_normal);
+         
         return true;
         
     }
