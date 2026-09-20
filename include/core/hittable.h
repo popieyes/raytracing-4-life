@@ -4,12 +4,16 @@
 #include "core/ray.h"
 #include "core/interval.h"
 
+class material;
+
 class hit_record {
     public:
         point3 p;
         vec3 normal;
+        shared_ptr<material> mat;
         double t; // Root where the collision happened
         bool front_face;
+        
 
         void set_face_normal(const ray& r, const vec3& outward_normal) {
             front_face = dot(r.direction(), outward_normal) < 0;
